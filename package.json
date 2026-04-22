@@ -1,0 +1,47 @@
+{
+  "name": "borte-messenger",
+  "version": "1.0.0",
+  "description": "56Ghada Studios - Börte Messenger",
+  "main": "main.js",
+  "author": "Kaanghada",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --linux AppImage",
+    "build:win": "electron-builder --win",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.56ghada.borte",
+    "productName": "Borte Messenger",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "index.html",
+      "app.js",
+      "logic.js",
+      "server.js",
+      "package.json",
+      "build/**/*"
+    ],
+    "asar": true,
+    "icon": "build/borte.png",
+    "linux": {
+      "target": "AppImage",
+      "category": "Network",
+      "icon": "build/borte.png"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/borte.png"
+    }
+  },
+  "devDependencies": {
+    "electron": "28.0.0",
+    "electron-builder": "^24.6.4"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.7.2"
+  }
+}

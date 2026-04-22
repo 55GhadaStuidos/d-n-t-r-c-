@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Börte Messenger - 55Ghada Studios</title>
+    <style>
+        :root { --borte-purple: #a855f7; --dark-bg: #000; --panel-bg: #0a0a0a; --red: #ef4444; --green: #22c55e; }
+        body { margin: 0; background: var(--dark-bg); color: white; font-family: sans-serif; height: 100vh; overflow: hidden; display: flex; }
+
+        /* GİRİŞ EKRANI */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
+        .login-box { text-align: center; width: 300px; }
+        .login-box svg { width: 80px; filter: drop-shadow(0 0 10px var(--borte-purple)); margin-bottom: 20px; }
+        #login-screen input { width: 250px; background: #111; border: 1px solid #333; padding: 12px; border-radius: 5px; color: white; outline: none; text-align: center; }
+        #login-screen button { width: 275px; margin-top: 15px; background: var(--borte-purple); border: none; color: white; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+        /* ANA EKRAN */
+        #main-app { display: none; height: 100vh; width: 100%; flex-direction: row; position: relative; }
+        
+        /* SIDEBAR */
+        .sidebar { width: 300px; background: var(--panel-bg); border-right: 1px solid #1a1a1a; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid #1a1a1a; }
+        
+        .tab-menu { display: flex; background: #050505; border-bottom: 1px solid #1a1a1a; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; color: #555; cursor: pointer; font-size: 11px; font-weight: bold; outline: none; }
+        .tab-btn.active { color: var(--borte-purple); border-bottom: 2px solid var(--borte-purple); }
+
+        /* ARKADAŞ LİSTESİ */
+        #friend-list-container { flex: 1; overflow-y: auto; padding: 10px; }
+        .friend-card { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #111; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--borte-purple); cursor: pointer; }
+        .del-btn { color: #444; border: none; background: transparent; cursor: pointer; font-size: 18px; padding: 0 5px; }
+        .del-btn:hover { color: var(--red); }
+
+        /* CHAT ALANI */
+        .chat-container { flex: 1; display: flex; flex-direction: column; }
+        .chat-header { padding: 15px; background: #050505; border-bottom: 1px solid #1a1a1a; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 10px; max-width: 70%; font-size: 14px; }
+        .msg.sent { align-self: flex-end; background: var(--borte-purple); }
+        .msg.received { align-self: flex-start; background: #1a1a1a; }
+        
+        .input-area { padding: 20px; background: var(--panel-bg); display: flex; gap: 10px; }
+        .input-area input { flex: 1; background: #111; border: 1px solid #333; padding: 12px; border-radius: 5px; color: white; outline: none; }
+        .input-area button { background: var(--borte-purple); border: none; color: white; padding: 0 25px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+        /* MODAL PANEL */
+        #modal-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; }
+        .modal-box { background: #0a0a0a; padding: 30px; border-radius: 12px; border: 1px solid var(--borte-purple); width: 320px; text-align: center; }
+        .modal-box h3 { color: var(--borte-purple); margin-bottom: 10px; }
+        .modal-box input { width: 100%; background: #111; border: 1px solid #333; padding: 15px; border-radius: 8px; color: white; text-align: center; margin-bottom: 10px; outline: none; }
+        #errorMsg { color: var(--red); font-size: 12px; margin-bottom: 15px; display: none; font-weight: bold; }
+        #statusText { color: var(--green); font-size: 14px; margin-bottom: 15px; display: none; }
+        .btn-group { display: flex; flex-direction: column; gap: 10px; }
+        .primary-btn { background: var(--borte-purple); border: none; color: white; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .secondary-btn { background: transparent; color: #555; border: none; padding: 10px; cursor: pointer; font-size: 13px; }
+        
+        #db-status { font-size: 10px; color: #444; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <svg viewBox="0 0 100 100" fill="none"><path d="M50 10L15 30V70L50 90L85 70V30L50 10Z" stroke="#a855f7" stroke-width="4"/><path d="M35 50L45 60L65 40" stroke="#a855f7" stroke-width="4" stroke-linecap="round"/></svg>
+        <h2 style="color: var(--borte-purple);">BM KAYIT</h2>
+        <input type="text" id="nickInput" placeholder="Kullanıcı adın ne olsun?">
+        <button onclick="register()">BAŞLAT</button>
+    </div>
+
+    <div id="main-app">
+        <div id="modal-overlay">
+            <div id="add-modal" class="modal-box">
+                <h3>Arkadaş Ekle</h3>
+                <div id="errorMsg">Böyle bir kullanıcı bulunamadı!</div>
+                <div id="statusText">İstek Gönderildi!</div>
+                <input type="text" id="friendIDInput" placeholder="Nick#1234">
+                <div class="btn-group" id="modalButtons">
+                    <button class="primary-btn" onclick="executeAdd()">İSTEK GÖNDER</button>
+                    <button class="secondary-btn" onclick="closeModal()">İPTAL</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <svg viewBox="0 0 100 100" fill="none" style="width: 30px; filter: drop-shadow(0 0 5px var(--borte-purple));"><path d="M50 10L15 30V70L50 90L85 70V30L50 10Z" stroke="#a855f7" stroke-width="4"/><path d="M35 50L45 60L65 40" stroke="#a855f7" stroke-width="4" stroke-linecap="round"/></svg>
+                <div id="display-id" style="font-size: 12px; color: var(--borte-purple); margin-top: 5px; font-weight: bold;"></div>
+            </div>
+            <div class="tab-menu">
+                <button class="tab-btn active">ARKADAŞLAR</button>
+                <button class="tab-btn" onclick="openAddModal()">+ EKLE</button>
+            </div>
+            <div id="friend-list-container"></div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <span id="active-chat-title">Börte Messenger</span>
+                <span id="db-status">Bulut: Bağlanıyor...</span>
+            </div>
+            <div class="messages" id="chatFlow"></div>
+            <div class="input-area">
+                <input type="text" id="msgInput" placeholder="Mesaj yaz..." onkeypress="if(event.key==='Enter') send()">
+                <button onclick="send()">GÖNDER</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
